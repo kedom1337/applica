@@ -1,0 +1,1 @@
+# Applica - Application Management Starter
