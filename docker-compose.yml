@@ -7,6 +7,8 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    profiles:
+      - prod
 
   backend:
     build:
@@ -15,19 +17,28 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DATABASE_URL=mongodb://mongo:27017/your_db
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/applica_db
       - LDAP_URL=${LDAP_URL}
     depends_on:
-      - mongo
+      - postgres
       - ldap
+    profiles:
+      - prod
 
-  mongo:
-    image: mongo:latest
-    container_name: mongo
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: applica_db
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - mongo_data:/data/db
+      - postgres_data:/var/lib/postgresql/data
+    profiles:
+      - dev
+      - prod
 
   ldap:
     image: osixia/openldap:1.5.0
@@ -44,6 +55,7 @@ services:
       - ldap_config:/etc/ldap/slapd.d
     profiles:
       - dev
+
   phpldapadmin:
     image: osixia/phpldapadmin:0.9.0
     container_name: phpldapadmin
@@ -57,6 +69,6 @@ services:
       - dev
 
 volumes:
-  mongo_data:
+  postgres_data:
   ldap_data:
   ldap_config:
