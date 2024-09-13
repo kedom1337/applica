@@ -1,6 +1,4 @@
-# `Applica` - 👥 User Application Management System
+# `Applica` - 👥 Application management for university clubs
 
-A full-stack system for handling user applications for small organizations
-like local clubs. The system provides an API for accepting
-applications from any source (like a WordPress plugin), and a dashboard for
-reviewing and managing these applications.
+A full-stack system that streamlines user application handling intended for university clubs.
+The system provides a API for accepting applications and a dashboard to manage them.

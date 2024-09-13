@@ -17,14 +17,14 @@ diesel::table! {
         degree -> Nullable<Varchar>,
         experience -> Nullable<Text>,
         #[max_length = 50]
-        status -> Nullable<Varchar>,
+        status -> Varchar,
         messaged -> Nullable<Bool>,
         talked -> Nullable<Bool>,
         club_briefed -> Nullable<Bool>,
         security_briefed -> Nullable<Bool>,
         information -> Nullable<Text>,
-        created -> Nullable<Timestamp>,
-        last_updated -> Nullable<Timestamp>,
+        created -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 

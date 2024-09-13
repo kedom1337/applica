@@ -8,12 +8,12 @@ CREATE TABLE applications (
     semester INT CHECK (semester > 0),
     degree VARCHAR(50),
     experience TEXT,
-    status VARCHAR(50),
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     messaged BOOLEAN DEFAULT FALSE,
     talked BOOLEAN DEFAULT FALSE,
     club_briefed BOOLEAN DEFAULT FALSE,
     security_briefed BOOLEAN DEFAULT FALSE,
     information TEXT,
-    created TIMESTAMP DEFAULT NOW(),
-    last_updated TIMESTAMP DEFAULT NOW()
+    created TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
