@@ -26,7 +26,7 @@ services:
       - prod
 
   postgres:
-    image: postgres:latest
+    image: postgres:16.4
     container_name: postgres
     environment:
       POSTGRES_USER: postgres
