@@ -4,10 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.7.5"
+dotenvy = "0.15"
+axum = { version = "0.7.5", features = ["tracing"] }
 tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread"] }
 diesel = { version = "2.2.0", features = ["postgres"] }
-dotenvy = "0.15"
+tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tower-http = { version = "0.5.2", features = ["trace"] }
 
 [[bin]]
 name = "backend"
