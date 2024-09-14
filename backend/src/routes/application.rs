@@ -1,9 +1,17 @@
 use axum::{
+    extract::State,
     routing::{get, post},
-    Router,
+    Json, Router,
 };
 
-pub fn get_router() -> Router {
+use diesel::prelude::*;
+
+use crate::{
+    db::PgPool, error::ApplicaError, models::application::Application,
+    schema::applications,
+};
+
+pub fn get_router() -> Router<PgPool> {
     Router::new()
         .route(
             "/",
@@ -15,22 +23,29 @@ pub fn get_router() -> Router {
         .route("/accept", post(accept_application))
 }
 
-async fn get_applications() -> &'static str {
-    "Get application"
+async fn get_applications(
+    State(pool): State<PgPool>,
+) -> Result<Json<Vec<Application>>, ApplicaError> {
+    let mut db_conn = pool.get()?;
+    let result: Vec<Application> = applications::table
+        .select(Application::as_select())
+        .load(&mut db_conn)?;
+
+    Ok(Json(result))
 }
 
-async fn add_application() -> &'static str {
+async fn add_application(State(pool): State<PgPool>) -> &'static str {
     "Add application"
 }
 
-async fn edit_application() -> &'static str {
+async fn edit_application(State(pool): State<PgPool>) -> &'static str {
     "Edit application"
 }
 
-async fn delete_application() -> &'static str {
+async fn delete_application(State(pool): State<PgPool>) -> &'static str {
     "Delete application"
 }
 
-async fn accept_application() -> &'static str {
+async fn accept_application(State(pool): State<PgPool>) -> &'static str {
     "Accept application"
 }

@@ -5,4 +5,4 @@ Dockerfile*
 .gitignore
 README.md
 rustfmt.toml
-.env
+.env.dev
