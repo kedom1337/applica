@@ -51,6 +51,11 @@ pub struct NewApplication {
     pub fields: Vec<i32>,
 }
 
+#[derive(Serialize)]
+pub struct DeleteApplication {
+    pub delete: usize,
+}
+
 #[derive(Deserialize)]
 pub struct UpdateStatus {
     pub id: i32,

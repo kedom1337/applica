@@ -5,13 +5,14 @@ use axum::{
 };
 
 use diesel::prelude::*;
-use serde_json::{json, Value};
 
 use crate::{
     db::PgPool,
     error::ApplicaError,
     models::{
-        application::{Application, NewApplication, UpdateStatus},
+        application::{
+            Application, DeleteApplication, NewApplication, UpdateStatus,
+        },
         application_field::ApplicationField,
     },
 };
@@ -80,14 +81,14 @@ async fn edit_application(
 
 async fn delete_application(
     State(pool): State<PgPool>,
-) -> Result<Json<Value>, ApplicaError> {
+) -> Result<Json<DeleteApplication>, ApplicaError> {
     use crate::schema::applications::dsl::*;
 
     let mut db_conn = pool.get()?;
     let result =
         diesel::delete(applications.filter(id.eq(1))).execute(&mut db_conn)?;
 
-    Ok(Json(json!({"deleted": result})))
+    Ok(Json(DeleteApplication { delete: result }))
 }
 
 async fn set_applicattion_status(
