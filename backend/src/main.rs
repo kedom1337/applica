@@ -38,6 +38,7 @@ async fn main() {
 
     {
         let mut conn = pool.get().unwrap();
+        tracing::debug!("running database migrations");
         db::run_migrations(&mut conn);
     }
 

@@ -1,3 +1,7 @@
+CREATE TYPE Status AS ENUM (
+    'pending', 'accepted', 'declined'
+);
+
 CREATE TABLE applications (
     id SERIAL PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -8,7 +12,7 @@ CREATE TABLE applications (
     semester INT CHECK (semester > 0),
     degree VARCHAR(50),
     experience TEXT,
-    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    status Status NOT NULL DEFAULT 'pending',
     messaged BOOLEAN DEFAULT FALSE,
     talked BOOLEAN DEFAULT FALSE,
     club_briefed BOOLEAN DEFAULT FALSE,

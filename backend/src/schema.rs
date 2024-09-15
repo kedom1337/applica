@@ -1,6 +1,15 @@
 // @generated automatically by Diesel CLI.
 
+pub mod sql_types {
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "status"))]
+    pub struct Status;
+}
+
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Status;
+
     applications (id) {
         id -> Int4,
         #[max_length = 100]
@@ -16,8 +25,7 @@ diesel::table! {
         #[max_length = 50]
         degree -> Nullable<Varchar>,
         experience -> Nullable<Text>,
-        #[max_length = 50]
-        status -> Varchar,
+        status -> Status,
         messaged -> Nullable<Bool>,
         talked -> Nullable<Bool>,
         club_briefed -> Nullable<Bool>,
