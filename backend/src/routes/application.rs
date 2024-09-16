@@ -23,7 +23,6 @@ pub fn get_router() -> Router<PgPool> {
             "/",
             get(get_applications)
                 .post(add_application)
-                .put(edit_application)
                 .delete(delete_application),
         )
         .route("/status", post(set_applicattion_status))
@@ -71,12 +70,6 @@ async fn add_application(
 
         Ok(Json(result))
     })
-}
-
-async fn edit_application(
-    State(pool): State<PgPool>,
-) -> Result<(), ApplicaError> {
-    Ok(())
 }
 
 async fn delete_application(
