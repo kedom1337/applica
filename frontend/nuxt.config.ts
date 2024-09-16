@@ -15,6 +15,7 @@ export default defineNuxtConfig({
     '@unocss/nuxt',
     '@nuxt/fonts',
     '@vee-validate/nuxt',
+    '@pinia/nuxt',
   ],
   primevue: {
     options: {
@@ -28,3 +29,4 @@ export default defineNuxtConfig({
     nuxtLayers: true,
   },
 })
+

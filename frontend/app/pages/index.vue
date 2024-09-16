@@ -1,7 +1,9 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const store = useApplicationsStore()
+</script>
 
 <template>
   <div>
-    <h1>Home</h1>
+    <pre>{{ store.applications }}</pre>
   </div>
 </template>
