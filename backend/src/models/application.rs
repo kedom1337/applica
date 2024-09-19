@@ -5,7 +5,7 @@ use crate::schema::applications;
 
 #[derive(Debug, Serialize, Deserialize, diesel_derive_enum::DbEnum)]
 #[ExistingTypePath = "crate::schema::sql_types::Status"]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "camelCase")]
 pub enum Status {
     Pending,
     Accepted,
@@ -15,6 +15,7 @@ pub enum Status {
 #[derive(Queryable, Selectable, Serialize)]
 #[diesel(table_name = applications)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
+#[serde(rename_all = "camelCase")]
 pub struct Application {
     pub id: i32,
     pub first_name: String,
@@ -31,8 +32,8 @@ pub struct Application {
     pub club_briefed: Option<bool>,
     pub security_briefed: Option<bool>,
     pub information: Option<String>,
-    pub created: std::time::SystemTime,
-    pub updated_at: std::time::SystemTime,
+    pub created: chrono::NaiveDateTime,
+    pub updated_at: chrono::NaiveDateTime,
 }
 
 #[derive(Deserialize, Insertable)]
@@ -52,6 +53,7 @@ pub struct NewApplication {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DeleteApplication {
     pub delete: usize,
 }
