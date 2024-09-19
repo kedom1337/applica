@@ -1,6 +1,8 @@
 export default defineNuxtPlugin((nuxtApp) => {
+  const config = useRuntimeConfig()
+
   const api = $fetch.create({
-    baseURL: 'localhost:8080/api/v1',
+    baseURL: config.public.apiBaseURL,
     async onResponseError({ response }) {
       if (response.status === 401) {
         await nuxtApp.runWithContext(() => navigateTo('/login'))
@@ -8,7 +10,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     },
   })
 
-  // Expose to useNuxtApp().$api
   return {
     provide: {
       api,

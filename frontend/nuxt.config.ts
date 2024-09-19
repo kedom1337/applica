@@ -1,6 +1,11 @@
 import Aura from '@primevue/themes/aura'
 
 export default defineNuxtConfig({
+  runtimeConfig: {
+    public: {
+      apiBaseURL: 'http://localhost:8080/api/v1',
+    },
+  },
   future: {
     compatibilityVersion: 4,
   },
@@ -29,4 +34,3 @@ export default defineNuxtConfig({
     nuxtLayers: true,
   },
 })
-
