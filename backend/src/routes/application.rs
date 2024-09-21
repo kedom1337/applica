@@ -11,9 +11,11 @@ use crate::{
     error::ApplicaError,
     models::{
         application::{
-            Application, DeleteApplication, NewApplication, UpdateStatus,
+            Application, ApplicationWithCourse, DeleteApplication,
+            NewApplication, UpdateApplicationStatus,
         },
         application_field::ApplicationField,
+        course::Course,
     },
 };
 
@@ -30,13 +32,18 @@ pub fn get_router() -> Router<PgPool> {
 
 async fn get_applications(
     State(pool): State<PgPool>,
-) -> Result<Json<Vec<Application>>, ApplicaError> {
+) -> Result<Json<Vec<ApplicationWithCourse>>, ApplicaError> {
     use crate::schema::applications::dsl::*;
+    use crate::schema::courses::dsl::*;
 
     let mut db_conn = pool.get()?;
     let result = applications
-        .select(Application::as_select())
-        .load(&mut db_conn)?;
+        .inner_join(courses)
+        .select((Application::as_select(), Course::as_select()))
+        .load::<(Application, Course)>(&mut db_conn)?
+        .into_iter()
+        .map(ApplicationWithCourse::from)
+        .collect::<Vec<ApplicationWithCourse>>();
 
     Ok(Json(result))
 }
@@ -86,7 +93,7 @@ async fn delete_application(
 
 async fn set_applicattion_status(
     State(pool): State<PgPool>,
-    Json(payload): Json<UpdateStatus>,
+    Json(payload): Json<UpdateApplicationStatus>,
 ) -> Result<Json<Application>, ApplicaError> {
     use crate::schema::applications::dsl::*;
 

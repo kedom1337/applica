@@ -1,21 +1,21 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::schema::applications;
+use crate::{models::course::Course, schema::applications};
 
 #[derive(Debug, Serialize, Deserialize, diesel_derive_enum::DbEnum)]
-#[ExistingTypePath = "crate::schema::sql_types::Status"]
 #[serde(rename_all = "camelCase")]
-pub enum Status {
+#[ExistingTypePath = "crate::schema::sql_types::Status"]
+pub enum ApplicationStatus {
     Pending,
     Accepted,
     Declined,
 }
 
 #[derive(Queryable, Selectable, Serialize)]
+#[serde(rename_all = "camelCase")]
 #[diesel(table_name = applications)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-#[serde(rename_all = "camelCase")]
 pub struct Application {
     pub id: i32,
     pub first_name: String,
@@ -26,7 +26,7 @@ pub struct Application {
     pub semester: Option<i32>,
     pub degree: Option<String>,
     pub experience: Option<String>,
-    pub status: Status,
+    pub status: ApplicationStatus,
     pub messaged: Option<bool>,
     pub talked: Option<bool>,
     pub club_briefed: Option<bool>,
@@ -59,7 +59,24 @@ pub struct DeleteApplication {
 }
 
 #[derive(Deserialize)]
-pub struct UpdateStatus {
+pub struct UpdateApplicationStatus {
     pub id: i32,
-    pub status: Status,
+    pub status: ApplicationStatus,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApplicationWithCourse {
+    #[serde(flatten)]
+    application: Application,
+    course: Course,
+}
+
+impl From<(Application, Course)> for ApplicationWithCourse {
+    fn from(value: (Application, Course)) -> Self {
+        Self {
+            application: value.0,
+            course: value.1,
+        }
+    }
 }
