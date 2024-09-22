@@ -1,6 +1,5 @@
 use axum::{routing::get, Router};
-
-use crate::db::PgPool;
+use sqlx::PgPool;
 
 pub fn get_router() -> Router<PgPool> {
     Router::new().route("/", get(validate_jwt).post(login))

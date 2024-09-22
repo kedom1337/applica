@@ -3,20 +3,21 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-
-use diesel::prelude::*;
+use sea_query::{Asterisk, Expr, PostgresQueryBuilder, Query};
+use sea_query_binder::SqlxBinder;
+use sqlx::PgPool;
 
 use crate::{
-    db::PgPool,
     error::ApplicaError,
     models::{
         application::{
-            Application, ApplicationWithCourse, DeleteApplication,
-            NewApplication, UpdateApplicationStatus,
+            Application, DeleteApplicationReq, DeleteApplicationRes,
+            GetApplicationsRes, SetApplicationStatusReq,
         },
-        application_field::ApplicationField,
         course::Course,
+        field::Field,
     },
+    schema::{Applications, ApplicationsFields, Courses, Fields},
 };
 
 pub fn get_router() -> Router<PgPool> {
@@ -32,76 +33,95 @@ pub fn get_router() -> Router<PgPool> {
 
 async fn get_applications(
     State(pool): State<PgPool>,
-) -> Result<Json<Vec<ApplicationWithCourse>>, ApplicaError> {
-    use crate::schema::applications::dsl::*;
-    use crate::schema::courses::dsl::*;
+) -> Result<Json<Vec<GetApplicationsRes>>, ApplicaError> {
+    let (sql, _) = Query::select()
+        .column(Asterisk)
+        .from(Applications::Table)
+        .build_sqlx(PostgresQueryBuilder);
 
-    let mut db_conn = pool.get()?;
-    let result = applications
-        .inner_join(courses)
-        .select((Application::as_select(), Course::as_select()))
-        .load::<(Application, Course)>(&mut db_conn)?
-        .into_iter()
-        .map(ApplicationWithCourse::from)
-        .collect::<Vec<ApplicationWithCourse>>();
+    let applications = sqlx::query_as::<_, Application>(&sql)
+        .fetch_all(&pool)
+        .await?;
 
-    Ok(Json(result))
+    let mut res = Vec::with_capacity(applications.len());
+    for a in applications.into_iter() {
+        let (sql, _) = Query::select()
+            .column(Asterisk)
+            .from(Courses::Table)
+            .cond_where(Expr::col(Courses::Id).eq(a.course_id))
+            .build_sqlx(PostgresQueryBuilder);
+
+        let course = sqlx::query_as::<_, Course>(&sql)
+            .bind(a.course_id)
+            .fetch_one(&pool)
+            .await?;
+
+        let (sql, _) = Query::select()
+            .column(Asterisk)
+            .from(ApplicationsFields::Table)
+            .cond_where(Expr::col(ApplicationsFields::ApplicationId).eq(a.id))
+            .left_join(
+                Fields::Table,
+                Expr::col(ApplicationsFields::FieldId).equals(Fields::Id),
+            )
+            .build_sqlx(PostgresQueryBuilder);
+
+        let fields = sqlx::query_as::<_, Field>(&sql)
+            .bind(a.id)
+            .fetch_all(&pool)
+            .await?;
+
+        res.push(GetApplicationsRes {
+            application: a,
+            course,
+            fields,
+        })
+    }
+
+    Ok(Json(res))
 }
 
 async fn add_application(
     State(pool): State<PgPool>,
-    Json(payload): Json<NewApplication>,
-) -> Result<Json<Application>, ApplicaError> {
-    use crate::schema::applications::dsl::*;
-    use crate::schema::applications_fields::dsl::*;
-
-    let mut db_conn = pool.get()?;
-    db_conn.transaction(|c| {
-        let result = diesel::insert_into(applications)
-            .values(&payload)
-            .returning(Application::as_returning())
-            .get_result(c)?;
-
-        let new_fields = payload
-            .fields
-            .into_iter()
-            .map(|f| ApplicationField {
-                application_id: result.id,
-                field_id: f,
-            })
-            .collect::<Vec<ApplicationField>>();
-
-        diesel::insert_into(applications_fields)
-            .values(new_fields)
-            .execute(c)?;
-
-        Ok(Json(result))
-    })
+) -> Result<(), ApplicaError> {
+    Ok(())
 }
 
 async fn delete_application(
     State(pool): State<PgPool>,
-) -> Result<Json<DeleteApplication>, ApplicaError> {
-    use crate::schema::applications::dsl::*;
+    Json(req): Json<DeleteApplicationReq>,
+) -> Result<Json<DeleteApplicationRes>, ApplicaError> {
+    let (sql, _) = Query::delete()
+        .from_table(Applications::Table)
+        .cond_where(Expr::col(Applications::Id).eq(req.id))
+        .returning_all()
+        .build_sqlx(PostgresQueryBuilder);
 
-    let mut db_conn = pool.get()?;
-    let result =
-        diesel::delete(applications.filter(id.eq(1))).execute(&mut db_conn)?;
+    let rows = sqlx::query(&sql).bind(req.id).fetch_all(&pool).await?;
+    println!("{:#?}", rows);
 
-    Ok(Json(DeleteApplication { delete: result }))
+    Ok(Json(DeleteApplicationRes { deleted: req.id }))
 }
 
 async fn set_applicattion_status(
     State(pool): State<PgPool>,
-    Json(payload): Json<UpdateApplicationStatus>,
-) -> Result<Json<Application>, ApplicaError> {
-    use crate::schema::applications::dsl::*;
+    Json(req): Json<SetApplicationStatusReq>,
+) -> Result<(), ApplicaError> {
+    let status =
+        String::from(serde_json::to_string(&req.status)?.trim_matches('"'));
 
-    let mut db_conn = pool.get()?;
-    let result = diesel::update(applications.filter(id.eq(payload.id)))
-        .set(status.eq(payload.status))
-        .returning(Application::as_returning())
-        .get_result(&mut db_conn)?;
+    let (sql, values) = Query::update()
+        .table(Applications::Table)
+        .values([
+            (Applications::Status, status.clone().into()),
+            (Applications::UpdatedAt, Expr::current_timestamp().into()),
+        ])
+        .cond_where(Expr::col(Applications::Id).eq(req.id))
+        .build_sqlx(PostgresQueryBuilder);
 
-    Ok(Json(result))
+    println!("{:#?}", values);
+
+    let rows = sqlx::query(&sql).bind(status).fetch_all(&pool).await?;
+
+    Ok(())
 }

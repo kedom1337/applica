@@ -1,4 +1,4 @@
-CREATE TYPE Status AS ENUM (
+CREATE TYPE ApplicationStatus AS ENUM (
     'pending', 'accepted', 'declined'
 );
 
@@ -12,7 +12,7 @@ CREATE TABLE applications (
     semester INT CHECK (semester > 0),
     degree VARCHAR(50),
     experience TEXT,
-    status Status NOT NULL DEFAULT 'pending',
+    status ApplicationStatus NOT NULL DEFAULT 'pending',
     messaged BOOLEAN DEFAULT FALSE,
     talked BOOLEAN DEFAULT FALSE,
     club_briefed BOOLEAN DEFAULT FALSE,

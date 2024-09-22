@@ -1,12 +1,8 @@
-use diesel::prelude::*;
 use serde::Serialize;
+use sqlx::prelude::*;
 
-use crate::schema::fields;
-
-#[derive(Queryable, Selectable, Serialize)]
-#[diesel(table_name = fields)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
+#[derive(FromRow, Serialize, Debug)]
 pub struct Field {
     id: i32,
-    name: String,
+    name: String
 }
