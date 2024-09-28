@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use sqlx::prelude::*;
+use sqlx::{
+    postgres::{PgHasArrayType, PgTypeInfo},
+    prelude::*,
+};
 
 use super::{course::Course, field::Field};
 
@@ -11,6 +14,12 @@ pub enum ApplicationStatus {
     Declined,
 }
 
+impl PgHasArrayType for ApplicationStatus {
+    fn array_type_info() -> sqlx::postgres::PgTypeInfo {
+        PgTypeInfo::with_name("_applicationstatus")
+    }
+}
+
 #[derive(FromRow, Serialize, Deserialize, Debug)]
 #[allow(dead_code)]
 pub struct Application {
@@ -19,7 +28,6 @@ pub struct Application {
     pub last_name: String,
     pub email: String,
     pub phone: Option<String>,
-    #[serde(skip_serializing)]
     pub course_id: i32,
     pub semester: Option<i32>,
     pub degree: Option<String>,
@@ -69,5 +77,5 @@ pub struct AddApplicationReq {
     pub semester: Option<i32>,
     pub degree: Option<String>,
     pub experience: Option<String>,
-    pub fields: Vec<i32>
+    pub fields: Vec<i32>,
 }

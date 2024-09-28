@@ -1,7 +1,6 @@
 mod common;
 mod models;
 mod routes;
-mod schema;
 
 use common::*;
 use routes::*;

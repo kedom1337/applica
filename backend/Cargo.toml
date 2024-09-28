@@ -26,12 +26,6 @@ sqlx = { version = "0.8", features = [
     "migrate",
     "chrono"
 ]}
-sea-query = { version = "0.31.0", features = [
-    "derive",
-    "attr",
-    "backend-postgres",
-]}
-sea-query-binder = { version = "0.6.0", features = ["sqlx-postgres"] }
 
 [[bin]]
 name = "backend"
