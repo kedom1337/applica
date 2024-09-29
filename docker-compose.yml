@@ -21,7 +21,6 @@ services:
       - LDAP_URL=${LDAP_URL}
     depends_on:
       - postgres
-      - ldap
     profiles:
       - prod
 

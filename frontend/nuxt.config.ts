@@ -3,7 +3,7 @@ import Aura from '@primevue/themes/aura'
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      apiBaseURL: 'http://localhost:8080/api/v1',
+      apiBaseURL: 'http://localhost:8080/api',
     },
   },
   future: {

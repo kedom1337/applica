@@ -1,30 +1,24 @@
 # Base image
 FROM oven/bun:1 AS base
 WORKDIR /usr/src/app
+ENV NODE_ENV=production
 
-# Stage 1 - Build app
+# Stage 1
 FROM base AS build
-
 # Install dependencies
 COPY bun.lockb package.json ./
 RUN bun install --frozen-lockfile
-
-# Build application
+# Build app
 COPY . .
-ENV NODE_ENV=production
 RUN bun run build
 
-# Stage 2 - Run app
-FROM base AS final
+# Stage 2
+FROM base AS release
+# Copy artifacts
 WORKDIR /app
-
-# Use non-privileged user
-USER bun
-
-# Copy the build artifacts from the build stage
 COPY --from=build /usr/src/app/.output .
-
-# Run the application
+# Run app with bun
+USER bun
 EXPOSE 3000/tcp
 ENV NUXT_HOST=0.0.0.0
 ENTRYPOINT ["bun", "run", "./server/index.mjs", "--host", "$NUXT_HOST"]

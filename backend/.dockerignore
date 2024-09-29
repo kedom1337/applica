@@ -1,8 +1,11 @@
-target
+.output
+node_modules
 
 Dockerfile*
 .dockerignore
 .gitignore
 README.md
-rustfmt.toml
-.env
+.prettierrc.json
+eslint.config.mjs
+drizzle.config.ts
+.env.local

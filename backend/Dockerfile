@@ -1,35 +1,21 @@
-# Stage 1 - Build app
-FROM rust:1.81.0-slim-bullseye AS build
+# Base image
+FROM oven/bun:1 AS base
 WORKDIR /usr/src/app
+ENV NODE_ENV=production
 
+# Stage 1
+FROM base AS install
 # Install dependencies
-COPY Cargo.toml Cargo.lock ./
-RUN cargo fetch
+COPY bun.lockb package.json ./
+RUN bun install --frozen-lockfile --production
 
-# Build application
-COPY . .
-RUN cargo build --locked --release
-
-# Stage 2 - Run app
-FROM debian:bullseye-slim AS final
+# Stage 2
+FROM base AS release
+# Copy artifacts
 WORKDIR /app
-
-# Create a non-privileged user that the app will run under.
-# See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
-ARG UID=10001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    appuser
-USER appuser
-
-# Copy the executable from the build stage
-COPY --from=build /usr/src/app/target/release/backend .
-
-# Run application
+COPY --from=install /usr/src/app/node_modules node_modules
+COPY . .
+# Run app with bun
+USER bun
 EXPOSE 8080/tcp
-CMD ["./backend"]
+ENTRYPOINT ["bun", "run", "src/index.ts"]
