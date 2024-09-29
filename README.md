@@ -4,7 +4,7 @@ A full-stack platform for managing user applications, designed for university cl
 
 ## Development
 
-1. Start the required Docker containers:
+1. Start the required Docker containers with the `dev` profile:
 
    ```bash
    sudo docker-compose --profile dev up -d
@@ -16,6 +16,7 @@ A full-stack platform for managing user applications, designed for university cl
 
   ```bash
   cd frontend
+  bun install
   bun run dev
   ```
 
@@ -23,17 +24,18 @@ A full-stack platform for managing user applications, designed for university cl
 
   ```bash
   cd backend
+  bun install
   bun run dev
   ```
 
 ## Production
 
-1. Start the production containers:
+1. Start the production containers with the `prod` profile:
 
    ```bash
    sudo docker-compose --profile prod up -d
    ```
 
-2. Make sure to configure your `.env` file with your LDAP URL (if using an external LDAP).
+2. Make sure to configure your `.env` file with your LDAP URL.
 
 This will launch the frontend, backend, and a PostgreSQL database.
