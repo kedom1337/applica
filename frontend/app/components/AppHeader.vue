@@ -1,7 +1,7 @@
 <template>
   <Toolbar>
     <template #start>
-      <span>Logo</span>
+      <span>Applica</span>
     </template>
     <template #end>
       <Avatar label="NK" />

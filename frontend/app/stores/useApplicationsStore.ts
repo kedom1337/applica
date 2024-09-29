@@ -1,4 +1,9 @@
-import type { Application } from '~/types/api'
+import type {
+  Application,
+  ApplicationStatus,
+  DeleteApplication,
+  UpdateApplicationStatus,
+} from '~/types/api'
 
 export const useApplicationsStore = defineStore('applications', () => {
   const applications = ref<Application[]>([])
@@ -10,7 +15,7 @@ export const useApplicationsStore = defineStore('applications', () => {
       isLoading.value = true
 
       try {
-        const data = await useNuxtApp().$api<Application[]>('/application')
+        const data = await useNuxtApp().$api<Application[]>('/applications')
         applications.value = data
         isInitialized.value = true
       } catch (err) {
@@ -24,5 +29,56 @@ export const useApplicationsStore = defineStore('applications', () => {
     return applications.value
   }
 
-  return { applications, isInitialized, isLoading, fetchApplications }
+  async function deleteApplication(application: Application): Promise<void> {
+    try {
+      const data = await useNuxtApp().$api<DeleteApplication>('/applications', {
+        method: 'DELETE',
+        body: {
+          id: application.id,
+        },
+      })
+
+      applications.value = applications.value.filter(
+        (appl) => appl.id !== data.id
+      )
+    } catch (err) {
+      console.error(err)
+      throw err
+    }
+  }
+
+  async function setApplicationStatus(
+    application: Application,
+    status: ApplicationStatus
+  ): Promise<void> {
+    try {
+      const data = await useNuxtApp().$api<UpdateApplicationStatus>(
+        '/applications/status',
+        {
+          method: 'POST',
+          body: {
+            id: application.id,
+            status,
+          },
+        }
+      )
+
+      const target = applications.value.findIndex((appl) => appl.id === data.id)
+      if (target !== -1) {
+        applications.value[target]!.status = data.status
+      }
+    } catch (err) {
+      console.error(err)
+      throw err
+    }
+  }
+
+  return {
+    applications,
+    isInitialized,
+    isLoading,
+    fetchApplications,
+    deleteApplication,
+    setApplicationStatus,
+  }
 })
