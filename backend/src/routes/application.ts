@@ -13,7 +13,10 @@ export const app = new Hono().basePath('/applications')
 
 app.get('/', async (c) => {
   try {
-    const result = await db.query.applications.findMany({
+    const dbResult = await db.query.applications.findMany({
+      columns: {
+        courseId: false,
+      },
       with: {
         course: true,
         fields: {
@@ -25,14 +28,12 @@ app.get('/', async (c) => {
       },
     })
 
-    const flattenedResult = result.map((application) => ({
+    const flattenedResult = dbResult.map((application) => ({
       ...application,
       fields: application.fields.map((field) => field.field),
     }))
 
-    return c.json({
-      flattenedResult,
-    })
+    return c.json(flattenedResult)
   } catch (err) {
     return c.json({ error: err }, 500)
   }
@@ -57,9 +58,7 @@ app.post('/', zValidator('json', InsertApplication), async (c) => {
     return newApplication
   })
 
-  return c.json({
-    application: dbResult,
-  })
+  return c.json(dbResult)
 })
 
 app.put('/', zValidator('json', UpdateApplication), async (c) => {
@@ -90,9 +89,7 @@ app.put('/', zValidator('json', UpdateApplication), async (c) => {
     return updatedApplication
   })
 
-  return c.json({
-    application: dbResult,
-  })
+  return c.json(dbResult)
 })
 
 app.delete('/', zValidator('json', DeleteApplication), async (c) => {
@@ -103,9 +100,7 @@ app.delete('/', zValidator('json', DeleteApplication), async (c) => {
     .where(eq(applications.id, req.id))
     .returning({ id: applications.id })
 
-  return c.json({
-    application: dbResult,
-  })
+  return c.json(dbResult)
 })
 
 app.post('/status', zValidator('json', UpdateApplicationStatus), async (c) => {
@@ -117,9 +112,7 @@ app.post('/status', zValidator('json', UpdateApplicationStatus), async (c) => {
       status: req.status,
     })
     .where(eq(applications.id, req.id))
-    .returning({ id: applications.id })
+    .returning({ id: applications.id, status: applications.status })
 
-  return c.json({
-    application: dbResult,
-  })
+  return c.json(dbResult[0])
 })
