@@ -9,6 +9,9 @@ import type { Application, ApplicationStatus } from '~/types/api'
 const store = useApplicationsStore()
 await useAsyncData('applications', () => store.fetchApplications())
 
+const confirm = useConfirm()
+const toast = useToast()
+
 const formattedApplications = computed(() =>
   store.applications.map((appl) => ({
     ...appl,
@@ -19,12 +22,7 @@ const formattedApplications = computed(() =>
 
 const dataTable = useTemplateRef<InstanceType<typeof DataTable>>('data-table')
 
-const selected = ref<Application[]>()
-const target = ref<Application>()
-const acceptDialog = ref(false)
-const declineDialog = ref(false)
-const deleteDialog = ref(false)
-
+const selected = ref<Application[]>([])
 const statusOptions = ref(['pending', 'accepted', 'declined'])
 const filters = ref<DataTableFilterMeta>({
   global: { value: '', matchMode: 'contains' },
@@ -46,30 +44,67 @@ function getSeverity(status: ApplicationStatus): string {
   }
 }
 
-function confirmDeleteSelected(): void {
-  deleteDialog.value = true
+function confirmStatusChange(
+  application: Application,
+  status: ApplicationStatus
+): void {
+  confirm.require({
+    header: 'Confirmation',
+    icon: 'pi pi-exclamation-triangle',
+    message: `
+      Are you sure you want to ${status === 'accepted' ? 'accept' : 'decline'}
+      the application of ${application.firstName} ${application.lastName}`,
+    rejectProps: {
+      severity: 'secondary',
+      outlined: true,
+    },
+    accept: async () => {
+      await store.setApplicationStatus(application, status)
+      toast.add({
+        severity: 'success',
+        summary: 'Status changed',
+        detail: `
+          You have ${status === 'accepted' ? 'accepted' : 'declined'} the application`,
+        life: 3000,
+      })
+    },
+  })
 }
 
-function confirmDecline(application: Application): void {
-  target.value = application
-  declineDialog.value = true
-}
+function confirmDelete(): void {
+  confirm.require({
+    header: 'Confirmation',
+    icon: 'pi pi-exclamation-triangle',
+    message: `
+      Are you sure you want to delete all ${selected.value.length} selected applications`,
+    rejectProps: {
+      severity: 'secondary',
+      outlined: true,
+    },
+    accept: async () => {
+      const deleteRequests = selected.value.map((application) =>
+        store.deleteApplication(application)
+      )
 
-function confirmAccept(application: Application): void {
-  target.value = application
-  acceptDialog.value = true
-}
+      await Promise.all(deleteRequests)
 
-async function changeStatus(status: ApplicationStatus): Promise<void> {
-  if (target.value) {
-    await store.setApplicationStatus(target.value, status)
-    acceptDialog.value = false
-  }
+      toast.add({
+        severity: 'success',
+        summary: 'Deleted',
+        detail: `
+          You have deleted the applications`,
+        life: 3000,
+      })
+    },
+  })
 }
 </script>
 
 <template>
   <div>
+    <Toast />
+    <ConfirmDialog />
+
     <Card class="m4">
       <template #content>
         <Toolbar class="!p4">
@@ -80,8 +115,8 @@ async function changeStatus(status: ApplicationStatus): Promise<void> {
               icon="pi pi-trash"
               severity="danger"
               outlined
-              :disabled="!selected || !selected.length"
-              @click="confirmDeleteSelected()"
+              :disabled="!selected.length"
+              @click="confirmDelete()"
             />
           </template>
           <template #end>
@@ -160,14 +195,14 @@ async function changeStatus(status: ApplicationStatus): Promise<void> {
                   outlined
                   severity="success"
                   :disabled="slotProps.data.status !== 'pending'"
-                  @click="confirmAccept(slotProps.data)"
+                  @click="confirmStatusChange(slotProps.data, 'accepted')"
                 />
                 <Button
                   icon="pi pi-times"
                   outlined
                   severity="danger"
                   :disabled="slotProps.data.status !== 'pending'"
-                  @click="confirmDecline(slotProps.data)"
+                  @click="confirmStatusChange(slotProps.data, 'declined')"
                 />
               </div>
             </template>
@@ -175,32 +210,5 @@ async function changeStatus(status: ApplicationStatus): Promise<void> {
         </DataTable>
       </template>
     </Card>
-
-    <ConfirmationDialog
-      v-model:visible="acceptDialog"
-      @confirm="changeStatus('accepted')"
-    >
-      <span>
-        Are you sure you want to <b> accept </b> the application of
-        <b> {{ target?.firstName }} {{ target?.lastName }} </b>?
-      </span>
-    </ConfirmationDialog>
-
-    <ConfirmationDialog
-      v-model:visible="declineDialog"
-      @confirm="changeStatus('declined')"
-    >
-      <span>
-        Are you sure you want to <b> decline </b>the application of
-        <b> {{ target?.firstName }} {{ target?.lastName }} </b>?
-      </span>
-    </ConfirmationDialog>
-
-    <ConfirmationDialog v-model:visible="deleteDialog">
-      <span>
-        Are you sure you want to delete
-        <b> all selected </b> applications?
-      </span>
-    </ConfirmationDialog>
   </div>
 </template>
