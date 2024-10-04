@@ -5,11 +5,9 @@ export const app = new Hono().basePath('/fields')
 
 app.get('/', async (c) => {
   try {
-    const result = await db.query.fields.findMany()
+    const dbResult = await db.query.fields.findMany()
 
-    return c.json({
-      result,
-    })
+    return c.json(dbResult)
   } catch (err) {
     return c.json({ error: err }, 500)
   }

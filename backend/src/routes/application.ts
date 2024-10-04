@@ -95,7 +95,7 @@ app.put('/', zValidator('json', UpdateApplication), async (c) => {
 app.delete('/', zValidator('json', DeleteApplication), async (c) => {
   const req = c.req.valid('json')
 
-  const dbResult = await db
+  const [dbResult] = await db
     .delete(applications)
     .where(eq(applications.id, req.id))
     .returning({ id: applications.id })
@@ -106,7 +106,7 @@ app.delete('/', zValidator('json', DeleteApplication), async (c) => {
 app.post('/status', zValidator('json', UpdateApplicationStatus), async (c) => {
   const req = c.req.valid('json')
 
-  const dbResult = await db
+  const [dbResult] = await db
     .update(applications)
     .set({
       status: req.status,
@@ -114,5 +114,5 @@ app.post('/status', zValidator('json', UpdateApplicationStatus), async (c) => {
     .where(eq(applications.id, req.id))
     .returning({ id: applications.id, status: applications.status })
 
-  return c.json(dbResult[0])
+  return c.json(dbResult)
 })
