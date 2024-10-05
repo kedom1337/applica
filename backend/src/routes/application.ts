@@ -46,16 +46,22 @@ app.post('/', zValidator('json', InsertApplication), async (c) => {
     const [newApplication] = await tx
       .insert(applications)
       .values(req)
-      .returning({ id: applications.id })
+      .returning()
 
-    await tx.insert(applicationsFields).values(
-      req.fields.map((fieldId) => ({
-        applicationId: newApplication.id,
-        fieldId,
-      }))
-    )
+    const newFields = await tx
+      .insert(applicationsFields)
+      .values(
+        req.fields.map((fieldId) => ({
+          applicationId: newApplication.id,
+          fieldId,
+        }))
+      )
+      .returning()
 
-    return newApplication
+    return {
+      ...newApplication,
+      fields: newFields,
+    }
   })
 
   return c.json(dbResult)
