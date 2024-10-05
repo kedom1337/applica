@@ -1,84 +1,118 @@
 import type {
+  Field,
   Application,
   ApplicationStatus,
-  DeleteApplication,
-  UpdateApplicationStatus,
+  Course,
+  DeleteApplicationResponse,
+  UpdateApplicationStatusResponse,
+  AddApplicationResponse,
 } from '~/types/api'
+import type { z } from 'zod'
+import type { AddApplication } from '~/types/api.schema'
 
 export const useApplicationsStore = defineStore('applications', () => {
-  const applications = ref<Application[]>([])
-  const isInitialized = ref(false)
+  const $applications = ref<Application[]>([])
+  const $fields = ref<Field[]>([])
+  const $courses = ref<Course[]>([])
+
   const isLoading = ref(false)
 
-  async function fetchApplications(): Promise<Application[]> {
-    if (!isInitialized.value) {
-      isLoading.value = true
+  async function fetchApplications(): Promise<void> {
+    isLoading.value = true
 
-      try {
-        const data = await useNuxtApp().$api<Application[]>('/applications')
-        applications.value = data
-        isInitialized.value = true
-      } catch (err) {
-        console.error(err)
-        throw err
-      } finally {
-        isLoading.value = false
-      }
+    try {
+      const data = await useNuxtApp().$api<Application[]>('/applications')
+      $applications.value = data
+    } finally {
+      isLoading.value = false
     }
+  }
 
-    return applications.value
+  async function fetchFieldsAndCourses(): Promise<void> {
+    isLoading.value = true
+
+    try {
+      const data = await Promise.all([
+        useNuxtApp().$api<Course[]>('/courses'),
+        useNuxtApp().$api<Field[]>('/fields'),
+      ])
+
+      $courses.value = data[0]
+      $fields.value = data[1]
+    } finally {
+      isLoading.value = false
+    }
   }
 
   async function deleteApplication(application: Application): Promise<void> {
-    try {
-      const data = await useNuxtApp().$api<DeleteApplication>('/applications', {
+    const data = await useNuxtApp().$api<DeleteApplicationResponse>(
+      '/applications',
+      {
         method: 'DELETE',
         body: {
           id: application.id,
         },
-      })
+      }
+    )
 
-      applications.value = applications.value.filter(
-        (appl) => appl.id !== data.id
-      )
-    } catch (err) {
-      console.error(err)
-      throw err
-    }
+    $applications.value = $applications.value.filter(
+      (appl) => appl.id !== data.id
+    )
   }
 
   async function setApplicationStatus(
     application: Application,
     status: ApplicationStatus
   ): Promise<void> {
-    try {
-      const data = await useNuxtApp().$api<UpdateApplicationStatus>(
-        '/applications/status',
-        {
-          method: 'POST',
-          body: {
-            id: application.id,
-            status,
-          },
-        }
-      )
-
-      const target = applications.value.findIndex((appl) => appl.id === data.id)
-      if (target !== -1) {
-        applications.value[target]!.status = data.status
+    const data = await useNuxtApp().$api<UpdateApplicationStatusResponse>(
+      '/applications/status',
+      {
+        method: 'POST',
+        body: {
+          id: application.id,
+          status,
+        },
       }
-    } catch (err) {
-      console.error(err)
-      throw err
+    )
+
+    const target = $applications.value.findIndex((appl) => appl.id === data.id)
+    if (target !== -1) {
+      $applications.value[target]!.status = data.status
     }
   }
 
+  async function addApplication(
+    application: z.infer<typeof AddApplication>
+  ): Promise<void> {
+    const data = await useNuxtApp().$api<AddApplicationResponse>(
+      '/applications',
+      {
+        method: 'POST',
+        body: application,
+      }
+    )
+
+    const { fields, courseId } = data
+
+    $applications.value.push({
+      ...data,
+      course: $courses.value.find((course) => course.id === courseId)!,
+      fields: fields.map(
+        (fieldRelation) =>
+          $fields.value.find((field) => field.id === fieldRelation.fieldId)!
+      ),
+    })
+  }
+
   return {
-    applications,
-    isInitialized,
+    applications: $applications,
+    fields: $fields,
+    courses: $courses,
     isLoading,
     fetchApplications,
+    fetchFieldsAndCourses,
     deleteApplication,
     setApplicationStatus,
+    addApplication,
   }
 })

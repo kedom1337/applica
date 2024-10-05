@@ -20,7 +20,7 @@
     "@primevue/themes": "^4.0.5",
     "@unocss/nuxt": "^0.62.3",
     "@vee-validate/nuxt": "^4.13.2",
-    "@vee-validate/yup": "^4.13.2",
+    "@vee-validate/zod": "^4.13.2",
     "change-case": "^5.4.4",
     "eslint": "^9.9.1",
     "nuxt": "^3.13.1",

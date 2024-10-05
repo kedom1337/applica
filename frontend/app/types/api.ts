@@ -35,11 +35,16 @@ export type Application = {
   fields: Field[]
 }
 
-export type DeleteApplication = {
-  id: number
+type ApplicaionFields = {
+  applicationId: number
+  fieldId: number
 }
 
-export type UpdateApplicationStatus = {
-  id: number
-  status: ApplicationStatus
+export type DeleteApplicationResponse = Pick<Application, 'id'>
+
+export type UpdateApplicationStatusResponse = Pick<Application, 'id' | 'status'>
+
+export type AddApplicationResponse = Omit<Application, 'course' | 'fields'> & {
+  courseId: number
+  fields: ApplicaionFields[]
 }

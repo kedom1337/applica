@@ -7,7 +7,9 @@ import type {
 import type { Application, ApplicationStatus } from '~/types/api'
 
 const store = useApplicationsStore()
-await useAsyncData('applications', () => store.fetchApplications())
+await useAsyncData('applications', () =>
+  store.fetchApplications().then(() => true)
+)
 
 const confirm = useConfirm()
 const toast = useToast()
@@ -22,6 +24,7 @@ const formattedApplications = computed(() =>
 
 const dataTable = useTemplateRef<InstanceType<typeof DataTable>>('data-table')
 
+const detailDialog = ref(false)
 const selected = ref<Application[]>([])
 const statusOptions = ref(['pending', 'accepted', 'declined'])
 const filters = ref<DataTableFilterMeta>({
@@ -104,19 +107,25 @@ function confirmDelete(): void {
   <div>
     <Toast />
     <ConfirmDialog />
+    <ApplicationDetailDialog v-model:visible="detailDialog" />
 
     <Card class="m4">
       <template #content>
         <Toolbar class="!p4">
           <template #start>
-            <Button label="New" icon="pi pi-plus" class="mr-4" />
+            <Button
+              label="New"
+              icon="pi pi-plus"
+              class="mr-4"
+              @click="detailDialog = true"
+            />
             <Button
               label="Delete"
               icon="pi pi-trash"
               severity="danger"
               outlined
               :disabled="!selected.length"
-              @click="confirmDelete()"
+              @click="confirmDelete"
             />
           </template>
           <template #end>

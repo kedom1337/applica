@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { object, string } from 'yup'
+import { z } from 'zod'
 
 definePageMeta({
   layout: false,
@@ -7,9 +7,9 @@ definePageMeta({
 
 const { handleSubmit, isSubmitting } = useForm({
   validationSchema: toTypedSchema(
-    object({
-      userName: string().required().label('Username'),
-      password: string().required().min(8).label('Password'),
+    z.object({
+      userName: z.string(),
+      password: z.string().min(8),
     })
   ),
 })
