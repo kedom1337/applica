@@ -116,7 +116,6 @@ function closeDetailDialog(): void {
 
 <template>
   <div>
-    <Toast />
     <ConfirmDialog />
     <ApplicationDetailDialog
       v-model:visible="detailDialog"
