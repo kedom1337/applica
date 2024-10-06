@@ -6,6 +6,8 @@ import type {
   DeleteApplicationResponse,
   UpdateApplicationStatusResponse,
   AddApplicationResponse,
+  RawApplicationWithFields,
+  UpdateApplicationResponse,
 } from '~/types/api'
 import type { z } from 'zod'
 import type { AddApplication } from '~/types/api.schema'
@@ -75,7 +77,7 @@ export const useApplicationsStore = defineStore('applications', () => {
       }
     )
 
-    const target = $applications.value.findIndex((appl) => appl.id === data.id)
+    const target = $applications.value.findIndex((a) => a.id === data.id)
     if (target !== -1) {
       $applications.value[target]!.status = data.status
     }
@@ -92,16 +94,39 @@ export const useApplicationsStore = defineStore('applications', () => {
       }
     )
 
+    $applications.value.push(transformRawApplicationWithFields(data))
+  }
+
+  async function updateApplication(
+    application: z.infer<typeof AddApplication>
+  ): Promise<void> {
+    const data = await useNuxtApp().$api<UpdateApplicationResponse>(
+      '/applications',
+      {
+        method: 'PUT',
+        body: application,
+      }
+    )
+
+    const target = $applications.value.findIndex((a) => a.id === data.id)
+    if (target !== -1) {
+      $applications.value[target] = transformRawApplicationWithFields(data)
+    }
+  }
+
+  function transformRawApplicationWithFields(
+    data: RawApplicationWithFields
+  ): Application {
     const { fields, courseId } = data
 
-    $applications.value.push({
+    return {
       ...data,
       course: $courses.value.find((course) => course.id === courseId)!,
       fields: fields.map(
         (fieldRelation) =>
           $fields.value.find((field) => field.id === fieldRelation.fieldId)!
       ),
-    })
+    }
   }
 
   return {
@@ -114,5 +139,6 @@ export const useApplicationsStore = defineStore('applications', () => {
     deleteApplication,
     setApplicationStatus,
     addApplication,
+    updateApplication,
   }
 })

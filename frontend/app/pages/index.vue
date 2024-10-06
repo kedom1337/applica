@@ -4,7 +4,7 @@ import type {
   DataTableFilterMeta,
   DataTableFilterMetaData,
 } from 'primevue/datatable'
-import type { Application, ApplicationStatus } from '~/types/api'
+import type { Application, ApplicationStatus, Field } from '~/types/api'
 
 const store = useApplicationsStore()
 await useAsyncData('applications', () =>
@@ -14,18 +14,12 @@ await useAsyncData('applications', () =>
 const confirm = useConfirm()
 const toast = useToast()
 
-const formattedApplications = computed(() =>
-  store.applications.map((appl) => ({
-    ...appl,
-    created: new Date(appl.created).toLocaleDateString(),
-    fields: appl.fields.map((f) => f.name).join(', '),
-  }))
-)
-
 const dataTable = useTemplateRef<InstanceType<typeof DataTable>>('data-table')
 
-const detailDialog = ref(false)
 const selected = ref<Application[]>([])
+const detailTarget = ref<Application>()
+
+const detailDialog = ref(false)
 const statusOptions = ref(['pending', 'accepted', 'declined'])
 const filters = ref<DataTableFilterMeta>({
   global: { value: '', matchMode: 'contains' },
@@ -45,6 +39,14 @@ function getSeverity(status: ApplicationStatus): string {
     case 'declined':
       return 'danger'
   }
+}
+
+function formatFields(fields: Field[]): string {
+  return fields.map((field) => field.name).join(', ')
+}
+
+function formatDate(date: string): string {
+  return new Date(date).toLocaleDateString()
 }
 
 function confirmStatusChange(
@@ -101,13 +103,26 @@ function confirmDelete(): void {
     },
   })
 }
+
+function openDetailDialog(application?: Application): void {
+  detailTarget.value = application
+  detailDialog.value = true
+}
+
+function closeDetailDialog(): void {
+  detailTarget.value = undefined
+}
 </script>
 
 <template>
   <div>
     <Toast />
     <ConfirmDialog />
-    <ApplicationDetailDialog v-model:visible="detailDialog" />
+    <ApplicationDetailDialog
+      v-model:visible="detailDialog"
+      :application="detailTarget"
+      @hide="closeDetailDialog"
+    />
 
     <Card class="m4">
       <template #content>
@@ -117,7 +132,7 @@ function confirmDelete(): void {
               label="New"
               icon="pi pi-plus"
               class="mr-4"
-              @click="detailDialog = true"
+              @click="openDetailDialog()"
             />
             <Button
               label="Delete"
@@ -144,11 +159,11 @@ function confirmDelete(): void {
           ref="data-table"
           v-model:filters="filters"
           v-model:selection="selected"
-          :value="formattedApplications"
           filter-display="menu"
           removable-sort
           sort-mode="multiple"
           paginator
+          :value="store.applications"
           :rows="15"
           :rows-per-page-options="[5, 15, 25]"
         >
@@ -194,11 +209,25 @@ function confirmDelete(): void {
           <Column field="course.name" header="Course" sortable />
           <Column field="semester" header="Semester" sortable />
           <Column field="degree" header="Degree" sortable />
-          <Column field="fields" header="Fields" sortable />
-          <Column field="created" header="Created" sortable />
+          <Column field="fields" header="Fields" sortable>
+            <template #body="slotProps">
+              {{ formatFields(slotProps.data.fields) }}
+            </template>
+          </Column>
+          <Column field="created" header="Created" sortable>
+            <template #body="slotProps">
+              {{ formatDate(slotProps.data.created) }}
+            </template>
+          </Column>
           <Column :exportable="false">
             <template #body="slotProps">
               <div class="flex gap-2">
+                <Button
+                  icon="pi pi-pen-to-square"
+                  severity="secondary"
+                  text
+                  @click="openDetailDialog(slotProps.data)"
+                />
                 <Button
                   icon="pi pi-check"
                   outlined

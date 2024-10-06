@@ -1,6 +1,12 @@
 <script setup lang="ts">
+import type { Application } from '~/types/api'
 import { AddApplication } from '~/types/api.schema'
 
+type Props = {
+  application?: Application
+}
+
+const { application } = defineProps<Props>()
 const visible = defineModel<boolean>('visible')
 
 const store = useApplicationsStore()
@@ -8,21 +14,46 @@ await useAsyncData('applications', () =>
   store.fetchFieldsAndCourses().then(() => true)
 )
 
-const { handleSubmit, isSubmitting } = useForm({
+const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: toTypedSchema(AddApplication),
 })
 
 const toast = useToast()
 
+watch(
+  () => application,
+  () => {
+    if (application) {
+      const { course, fields } = application
+      resetForm({
+        values: {
+          ...application,
+          courseId: course.id,
+          fields: fields.map((field) => field.id),
+        },
+      })
+    }
+  }
+)
+
 const onSubmit = handleSubmit(async (values) => {
-  await store.addApplication(values)
+  const action = application ? 'udpate' : 'add'
+
+  if (action === 'udpate') {
+    await store.updateApplication(values)
+  } else {
+    await store.addApplication(values)
+  }
+
   toast.add({
     severity: 'success',
-    summary: 'Added',
+    summary: action === 'udpate' ? 'Updated' : 'Added',
     detail: `
-      You have added an application for ${values.firstName} ${values.lastName}`,
+      You have ${action === 'udpate' ? 'updated the' : 'added an'} application
+      for ${values.firstName} ${values.lastName}`,
     life: 3000,
   })
+
   visible.value = false
 })
 </script>
@@ -30,9 +61,11 @@ const onSubmit = handleSubmit(async (values) => {
   <div>
     <Dialog
       v-model:visible="visible"
+      v-bind="$attrs"
       class="w-full max-w-[50rem] m-4"
       header="Application Details"
       modal
+      close-on-escape
     >
       <form
         ref="form"
@@ -78,6 +111,8 @@ const onSubmit = handleSubmit(async (values) => {
           rows="4"
           class="sm:col-span-2"
         />
+
+        <Divider class="sm:col-span-2" />
 
         <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 sm:col-span-2">
           <FormCheckbox name="messaged" label="Messaged" binary />
