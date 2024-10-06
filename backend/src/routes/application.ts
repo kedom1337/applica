@@ -13,31 +13,27 @@ import { eq } from 'drizzle-orm'
 export const app = new Hono().basePath('/applications')
 
 app.get('/', async (c) => {
-  try {
-    const dbResult = await db.query.applications.findMany({
-      columns: {
-        courseId: false,
-      },
-      with: {
-        course: true,
-        fields: {
-          columns: {},
-          with: {
-            field: true,
-          },
+  const dbResult = await db.query.applications.findMany({
+    columns: {
+      courseId: false,
+    },
+    with: {
+      course: true,
+      fields: {
+        columns: {},
+        with: {
+          field: true,
         },
       },
-    })
+    },
+  })
 
-    const flattenedResult = dbResult.map((application) => ({
-      ...application,
-      fields: application.fields.map((field) => field.field),
-    }))
+  const flattenedResult = dbResult.map((application) => ({
+    ...application,
+    fields: application.fields.map((field) => field.field),
+  }))
 
-    return c.json(flattenedResult)
-  } catch (err) {
-    return c.json({ error: err }, 500)
-  }
+  return c.json(flattenedResult)
 })
 
 app.post('/', zValidator('json', InsertApplication), async (c) => {
