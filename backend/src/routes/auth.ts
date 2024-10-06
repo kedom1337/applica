@@ -4,6 +4,7 @@ import { Login } from '../models/auth'
 import { getLdapClient, ldapConfig } from '../ldap'
 import { HTTPException } from 'hono/http-exception'
 import { Client } from 'ldapts'
+import { StatusCodes } from 'http-status-codes'
 
 export const app = new Hono().basePath('/auth')
 
@@ -24,15 +25,14 @@ app.post('/login', zValidator('json', Login), async (c) => {
 
     // No user with username found
     if (userEntries.length === 0) {
-      throw new HTTPException(401, {
+      throw new HTTPException(StatusCodes.UNAUTHORIZED, {
         message: 'Username or password is incorrect',
       })
     }
 
     // Do a LDAP bind to verify the users password
-    const userDn = userEntries[0].dn
     const ldapUser = new Client({ url: ldapConfig.url })
-    await ldapUser.bind(userDn, req.password)
+    await ldapUser.bind(userEntries[0].dn, req.password)
     await ldapUser.unbind()
 
     // Check if the user is a field leader and therefor
@@ -48,7 +48,7 @@ app.post('/login', zValidator('json', Login), async (c) => {
 
     // Not a field leader
     if (groupEntries.length === 0) {
-      throw new HTTPException(403, {
+      throw new HTTPException(StatusCodes.FORBIDDEN, {
         message: 'Access denied. Only field leaders can login.',
       })
     }
@@ -65,7 +65,7 @@ app.post('/login', zValidator('json', Login), async (c) => {
       throw err
     }
 
-    throw new HTTPException(401, {
+    throw new HTTPException(StatusCodes.UNAUTHORIZED, {
       message: 'Username or password is incorrect',
     })
   } finally {
