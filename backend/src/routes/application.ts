@@ -6,6 +6,7 @@ import {
   InsertApplication,
   UpdateApplicationStatus,
   UpdateApplication,
+  type RawApplicationWithFields,
 } from '../models/application'
 import { eq } from 'drizzle-orm'
 
@@ -42,27 +43,29 @@ app.get('/', async (c) => {
 app.post('/', zValidator('json', InsertApplication), async (c) => {
   const req = c.req.valid('json')
 
-  const dbResult = await db.transaction(async (tx) => {
-    const [newApplication] = await tx
-      .insert(applications)
-      .values(req)
-      .returning()
+  const dbResult = await db.transaction(
+    async (tx): Promise<RawApplicationWithFields> => {
+      const [newApplication] = await tx
+        .insert(applications)
+        .values(req)
+        .returning()
 
-    const newFields = await tx
-      .insert(applicationsFields)
-      .values(
-        req.fields.map((fieldId) => ({
-          applicationId: newApplication.id,
-          fieldId,
-        }))
-      )
-      .returning()
+      const newFields = await tx
+        .insert(applicationsFields)
+        .values(
+          req.fields.map((fieldId) => ({
+            applicationId: newApplication.id,
+            fieldId,
+          }))
+        )
+        .returning()
 
-    return {
-      ...newApplication,
-      fields: newFields,
+      return {
+        ...newApplication,
+        fields: newFields,
+      }
     }
-  })
+  )
 
   return c.json(dbResult)
 })
@@ -70,30 +73,41 @@ app.post('/', zValidator('json', InsertApplication), async (c) => {
 app.put('/', zValidator('json', UpdateApplication), async (c) => {
   const req = c.req.valid('json')
 
-  const dbResult = await db.transaction(async (tx) => {
-    const updatedApplication = await tx
-      .update(applications)
-      .set(req)
-      .where(eq(applications.id, req.id))
-      .returning()
+  const dbResult = await db.transaction(
+    async (tx): Promise<RawApplicationWithFields> => {
+      const updatedApplication = await tx
+        .update(applications)
+        .set(req)
+        .where(eq(applications.id, req.id))
+        .returning()
 
-    if (updatedApplication.length > 0) {
-      await tx
-        .delete(applicationsFields)
-        .where(eq(applicationsFields.applicationId, req.id))
+      let res: RawApplicationWithFields = {}
+      if (updatedApplication.length > 0) {
+        res = updatedApplication[0]
 
-      if (req.fields && req.fields.length > 0) {
-        await tx.insert(applicationsFields).values(
-          req.fields.map((fieldId) => ({
-            applicationId: req.id,
-            fieldId,
-          }))
-        )
+        await tx
+          .delete(applicationsFields)
+          .where(eq(applicationsFields.applicationId, req.id))
+
+        res.fields = []
+        if (req.fields.length > 0) {
+          const updatedFields = await tx
+            .insert(applicationsFields)
+            .values(
+              req.fields.map((fieldId) => ({
+                applicationId: req.id,
+                fieldId,
+              }))
+            )
+            .returning()
+
+          res.fields = updatedFields
+        }
       }
-    }
 
-    return updatedApplication
-  })
+      return res
+    }
+  )
 
   return c.json(dbResult)
 })

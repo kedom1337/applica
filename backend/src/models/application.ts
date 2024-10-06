@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { applications } from '../db'
+import { applications, applicationsFields } from '../db'
 import { createInsertSchema } from 'drizzle-zod'
 
 const BaseSchema = createInsertSchema(applications, {
@@ -37,7 +37,7 @@ export const UpdateApplication = BaseSchema.partial()
   })
   .extend({
     id: z.number().int().positive(),
-    fields: z.array(z.number().int().positive()).optional(),
+    fields: z.array(z.number().int().positive()),
   })
 
 export const UpdateApplicationStatus = BaseSchema.pick({
@@ -49,3 +49,9 @@ export const UpdateApplicationStatus = BaseSchema.pick({
 export const DeleteApplication = z.object({
   id: z.number().int().positive(),
 })
+
+export type RawApplicationWithFields = Partial<
+  typeof applications.$inferSelect & {
+    fields: (typeof applicationsFields.$inferSelect)[]
+  }
+>
