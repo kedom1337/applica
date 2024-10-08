@@ -9,8 +9,18 @@ import {
   type RawApplicationWithFields,
 } from '../models/application'
 import { eq } from 'drizzle-orm'
+import { jwt } from 'hono/jwt'
+import { env } from 'hono/adapter'
 
 export const app = new Hono().basePath('/applications')
+
+app.use('*', (c, next) => {
+  const jwtMiddleware = jwt({
+    secret: env<{ JWT_SECRET: string }>(c).JWT_SECRET,
+  })
+
+  return jwtMiddleware(c, next)
+})
 
 app.get('/', async (c) => {
   const dbResult = await db.query.applications.findMany({

@@ -5,6 +5,8 @@ import { getLdapClient, ldapConfig } from '../ldap'
 import { HTTPException } from 'hono/http-exception'
 import { Client } from 'ldapts'
 import { StatusCodes } from 'http-status-codes'
+import { sign } from 'hono/jwt'
+import { env } from 'hono/adapter'
 
 export const app = new Hono().basePath('/auth')
 
@@ -53,12 +55,16 @@ app.post('/login', zValidator('json', Login), async (c) => {
       })
     }
 
+    const payload = {
+      sub: req.userName,
+      name: userEntries[0]['cn'],
+      // Token expires in 30 minutes
+      exp: Math.floor(Date.now() / 1000) + 30 * 60,
+    }
+
     return c.json({
-      message: 'Login successful',
-      user: {
-        uid: req.userName,
-        cn: userEntries[0]['cn'],
-      },
+      user: payload,
+      token: await sign(payload, env<{ JWT_SECRET: string }>(c).JWT_SECRET),
     })
   } catch (err) {
     if (err instanceof HTTPException) {
@@ -74,5 +80,5 @@ app.post('/login', zValidator('json', Login), async (c) => {
 })
 
 app.get('/verify', (c) => {
-  return c.json({ message: 'Verify' })
+  return c.json({ ok: true })
 })
