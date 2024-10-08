@@ -1,21 +1,30 @@
 <script setup lang="ts">
 import { z } from 'zod'
 
+const store = useUserStore()
+
 definePageMeta({
   layout: false,
 })
 
-const { handleSubmit, isSubmitting } = useForm({
+const { handleSubmit, isSubmitting, resetForm } = useForm({
   validationSchema: toTypedSchema(
     z.object({
       userName: z.string(),
-      password: z.string().min(8),
+      password: z.string(),
     })
   ),
 })
 
-const onSubmit = handleSubmit((values) => {
-  console.log(values)
+const onSubmit = handleSubmit(async (values) => {
+  try {
+    await store.login(values.userName, values.password)
+  } catch (err) {
+    resetForm()
+
+    throw err
+  }
+
   navigateTo('/')
 })
 </script>

@@ -8,30 +8,29 @@ import type {
   AddApplicationResponse,
   RawApplicationWithFields,
   UpdateApplicationResponse,
-} from '~/types/api'
+} from '~/types/applicaion'
 import type { z } from 'zod'
-import type { AddApplication } from '~/types/api.schema'
+import type { AddApplication } from '~/types/applicaion.schema'
 
 export const useApplicationsStore = defineStore('applications', () => {
   const $applications = ref<Application[]>([])
   const $fields = ref<Field[]>([])
   const $courses = ref<Course[]>([])
-
-  const isLoading = ref(false)
+  const $isLoading = ref(false)
 
   async function fetchApplications(): Promise<void> {
-    isLoading.value = true
+    $isLoading.value = true
 
     try {
       const data = await useNuxtApp().$api<Application[]>('/applications')
       $applications.value = data
     } finally {
-      isLoading.value = false
+      $isLoading.value = false
     }
   }
 
   async function fetchFieldsAndCourses(): Promise<void> {
-    isLoading.value = true
+    $isLoading.value = true
 
     try {
       const data = await Promise.all([
@@ -42,7 +41,7 @@ export const useApplicationsStore = defineStore('applications', () => {
       $courses.value = data[0]
       $fields.value = data[1]
     } finally {
-      isLoading.value = false
+      $isLoading.value = false
     }
   }
 
@@ -133,7 +132,7 @@ export const useApplicationsStore = defineStore('applications', () => {
     applications: $applications,
     fields: $fields,
     courses: $courses,
-    isLoading,
+    isLoading: $isLoading,
     fetchApplications,
     fetchFieldsAndCourses,
     deleteApplication,

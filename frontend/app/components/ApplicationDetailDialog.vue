@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Application } from '~/types/api'
-import { AddApplication } from '~/types/api.schema'
+import type { Application } from '~/types/applicaion'
+import { AddApplication } from '~/types/applicaion.schema'
 
 type Props = {
   application?: Application

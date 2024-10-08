@@ -4,7 +4,7 @@ import type {
   DataTableFilterMeta,
   DataTableFilterMetaData,
 } from 'primevue/datatable'
-import type { Application, ApplicationStatus, Field } from '~/types/api'
+import type { Application, ApplicationStatus, Field } from '~/types/applicaion'
 
 const store = useApplicationsStore()
 await useAsyncData('applications', () =>

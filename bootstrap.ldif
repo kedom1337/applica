@@ -1,0 +1,31 @@
+version: 1
+
+dn: ou=group,dc=applica,dc=com
+objectclass: organizationalUnit
+ou: group
+
+dn: cn=fieldleader,ou=group,dc=applica,dc=com
+cn: fieldleader
+gidnumber: 500
+memberuid: jdoe
+objectclass: posixGroup
+objectclass: top
+
+dn: ou=people,dc=applica,dc=com
+objectclass: organizationalUnit
+objectclass: top
+ou: people
+
+dn: cn=John Doe,ou=people,dc=applica,dc=com
+cn: John Doe
+gidnumber: 500
+givenname: John
+homedirectory: /home/users/jdoe
+loginshell: /bin/false
+objectclass: inetOrgPerson
+objectclass: posixAccount
+objectclass: top
+sn: Doe
+uid: jdoe
+uidnumber: 1000
+userpassword: {SSHA}ptrIpxOnBwbr1H1RGrNDPa/WkCOJMtvr
