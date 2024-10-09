@@ -13,7 +13,7 @@ export default defineNuxtConfig({
   devtools: {
     enabled: true,
   },
-  css: ['~/assets/scss/main.scss'],
+  css: ['~/assets/main.css'],
   modules: [
     '@nuxt/eslint',
     '@primevue/nuxt-module',
@@ -32,14 +32,5 @@ export default defineNuxtConfig({
   },
   unocss: {
     nuxtLayers: true,
-  },
-  vite: {
-    css: {
-      preprocessorOptions: {
-        scss: {
-          api: 'modern',
-        },
-      },
-    },
   },
 })
