@@ -3,10 +3,10 @@
   "module": "./src/index.ts",
   "type": "module",
   "scripts": {
-    "dev": "bun --env-file=../.env.dev --hot src/index.ts",
-    "db:generate": "bun run --env-file=../.env.dev drizzle-kit generate",
-    "db:migrate": "bun --env-file=../.env.dev ./src/db/scripts/migrate.ts",
-    "db:seed": "bun --env-file=../.env.dev ./src/db/scripts/seed.ts"
+    "dev": "bun --hot src/index.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bun ./src/db/scripts/migrate.ts",
+    "db:seed": "bun ./src/db/scripts/seed.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.3.0",

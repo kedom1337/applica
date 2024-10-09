@@ -14,6 +14,36 @@ import { env } from 'hono/adapter'
 
 export const app = new Hono().basePath('/applications')
 
+app.post('/', zValidator('json', InsertApplication), async (c) => {
+  const req = c.req.valid('json')
+
+  const dbResult = await db.transaction(
+    async (tx): Promise<RawApplicationWithFields> => {
+      const [newApplication] = await tx
+        .insert(applications)
+        .values(req)
+        .returning()
+
+      const newFields = await tx
+        .insert(applicationsFields)
+        .values(
+          req.fields.map((fieldId) => ({
+            applicationId: newApplication.id,
+            fieldId,
+          }))
+        )
+        .returning()
+
+      return {
+        ...newApplication,
+        fields: newFields,
+      }
+    }
+  )
+
+  return c.json(dbResult)
+})
+
 app.use('*', (c, next) => {
   const jwtMiddleware = jwt({
     secret: env<{ JWT_SECRET: string }>(c).JWT_SECRET,
@@ -44,36 +74,6 @@ app.get('/', async (c) => {
   }))
 
   return c.json(flattenedResult)
-})
-
-app.post('/', zValidator('json', InsertApplication), async (c) => {
-  const req = c.req.valid('json')
-
-  const dbResult = await db.transaction(
-    async (tx): Promise<RawApplicationWithFields> => {
-      const [newApplication] = await tx
-        .insert(applications)
-        .values(req)
-        .returning()
-
-      const newFields = await tx
-        .insert(applicationsFields)
-        .values(
-          req.fields.map((fieldId) => ({
-            applicationId: newApplication.id,
-            fieldId,
-          }))
-        )
-        .returning()
-
-      return {
-        ...newApplication,
-        fields: newFields,
-      }
-    }
-  )
-
-  return c.json(dbResult)
 })
 
 app.put('/', zValidator('json', UpdateApplication), async (c) => {
