@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hono/zod-validator": "^0.3.0",
+    "drizzle-kit": "^0.25.0",
     "drizzle-orm": "^0.33.0",
     "drizzle-zod": "^0.5.1",
     "hono": "^4.6.2",
@@ -24,7 +25,6 @@
     "@types/eslint__js": "^8.42.3",
     "@typescript-eslint/eslint-plugin": "^8.6.0",
     "@typescript-eslint/parser": "^8.6.0",
-    "drizzle-kit": "^0.24.2",
     "eslint": "^9.11.0",
     "eslint-plugin-drizzle": "^0.2.3",
     "globals": "^15.9.0",
