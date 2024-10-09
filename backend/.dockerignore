@@ -6,5 +6,4 @@ Dockerfile*
 README.md
 .prettierrc.json
 eslint.config.mjs
-drizzle.config.ts
 .env.development
