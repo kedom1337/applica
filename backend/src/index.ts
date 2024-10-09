@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { logger } from 'hono/logger'
+import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
 import { prettyJSON } from 'hono/pretty-json'
 import { applications, fields, courses, auth } from './routes'
@@ -8,7 +9,7 @@ import { ReasonPhrases, StatusCodes } from 'http-status-codes'
 
 const app = new Hono().basePath('/api')
 
-app.use(logger(), secureHeaders(), prettyJSON())
+app.use(logger(), secureHeaders(), prettyJSON(), cors())
 
 app.route('/', applications.app)
 app.route('/', fields.app)
