@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const store = useUserStore()
+const menu = useTemplateRef('menu')
 
 const initials = computed(
   () =>
@@ -8,6 +9,18 @@ const initials = computed(
       .map((word) => word[0]?.toUpperCase())
       .join('') ?? ''
 )
+
+const menuItems = ref([
+  {
+    label: 'Logout',
+    icon: 'pi pi-sign-out',
+    command: (): void => store.logout(),
+  },
+])
+
+function onMenuClick(event: Event): void {
+  menu.value?.toggle(event)
+}
 </script>
 <template>
   <Toolbar>
@@ -15,7 +28,15 @@ const initials = computed(
       <span>Applica</span>
     </template>
     <template #end>
-      <Avatar :label="initials" />
+      <Avatar
+        class="cursor-pointer"
+        type="button"
+        :label="initials"
+        aria-haspopup="true"
+        aria-controls="overlay_menu"
+        @click="onMenuClick"
+      />
+      <Menu ref="menu" :model="menuItems" popup />
     </template>
   </Toolbar>
 </template>

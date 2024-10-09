@@ -5,7 +5,9 @@ export const useUserStore = defineStore('user', () => {
   const $user = ref<User | null>(null)
   const $isLoading = ref(false)
 
-  const jwtToken = useCookie('jwtToken')
+  const jwtToken = useCookie('jwtToken', {
+    sameSite: 'lax',
+  })
 
   async function login(userName: string, password: string): Promise<void> {
     $isLoading.value = true
