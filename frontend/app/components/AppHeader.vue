@@ -1,10 +1,10 @@
 <script setup lang="ts">
-const store = useUserStore()
+const userStore = useUserStore()
 const menu = useTemplateRef('menu')
 
 const initials = computed(
   () =>
-    store.user?.name
+    userStore.user?.name
       .split(' ')
       .map((word) => word[0]?.toUpperCase())
       .join('') ?? ''
@@ -14,7 +14,10 @@ const menuItems = ref([
   {
     label: 'Logout',
     icon: 'pi pi-sign-out',
-    command: (): void => store.logout(),
+    command: (): void => {
+      userStore.logout()
+      navigateTo('/login')
+    },
   },
 ])
 

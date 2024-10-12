@@ -9,9 +9,9 @@ type Props = {
 const { application } = defineProps<Props>()
 const visible = defineModel<boolean>('visible')
 
-const store = useApplicationsStore()
+const applicationsStore = useApplicationsStore()
 await useAsyncData('applications', () =>
-  store.fetchFieldsAndCourses().then(() => true)
+  applicationsStore.fetchFieldsAndCourses().then(() => true)
 )
 
 const { handleSubmit, isSubmitting, resetForm } = useForm({
@@ -40,9 +40,9 @@ const onSubmit = handleSubmit(async (values) => {
   const action = application ? 'udpate' : 'add'
 
   if (action === 'udpate') {
-    await store.updateApplication(values)
+    await applicationsStore.updateApplication(values)
   } else {
-    await store.addApplication(values)
+    await applicationsStore.addApplication(values)
   }
 
   toast.add({
@@ -90,14 +90,14 @@ const onSubmit = handleSubmit(async (values) => {
         <FormSelect
           name="courseId"
           label="Course"
-          :options="store.courses"
+          :options="applicationsStore.courses"
           option-label="name"
           option-value="id"
         />
         <FormSelect
           name="fields"
           label="Fields"
-          :options="store.fields"
+          :options="applicationsStore.fields"
           option-label="name"
           option-value="id"
           multi

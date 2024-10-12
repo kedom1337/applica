@@ -1,17 +1,18 @@
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
   const toast = useToast()
-  const store = useUserStore()
+  const userStore = useUserStore()
+  const route = useRoute()
 
   const api = $fetch.create({
     baseURL: config.public.apiBaseURL,
     onRequest({ options }) {
-      if (store.user && store.token) {
-        options.headers.set('Authorization', `Bearer ${store.token}`)
+      if (userStore.token) {
+        options.headers.set('Authorization', `Bearer ${userStore.token}`)
       }
     },
     async onResponseError({ response }) {
-      if (response.status === 401) {
+      if (response.status === 401 && route.path !== '/login') {
         await nuxtApp.runWithContext(() => navigateTo('/login'))
       }
 

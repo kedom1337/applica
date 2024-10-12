@@ -16,33 +16,20 @@ export const useApplicationsStore = defineStore('applications', () => {
   const $applications = ref<Application[]>([])
   const $fields = ref<Field[]>([])
   const $courses = ref<Course[]>([])
-  const $isLoading = ref(false)
 
   async function fetchApplications(): Promise<void> {
-    $isLoading.value = true
-
-    try {
-      const data = await useNuxtApp().$api<Application[]>('/applications')
-      $applications.value = data
-    } finally {
-      $isLoading.value = false
-    }
+    const data = await useNuxtApp().$api<Application[]>('/applications')
+    $applications.value = data
   }
 
   async function fetchFieldsAndCourses(): Promise<void> {
-    $isLoading.value = true
+    const data = await Promise.all([
+      useNuxtApp().$api<Course[]>('/courses'),
+      useNuxtApp().$api<Field[]>('/fields'),
+    ])
 
-    try {
-      const data = await Promise.all([
-        useNuxtApp().$api<Course[]>('/courses'),
-        useNuxtApp().$api<Field[]>('/fields'),
-      ])
-
-      $courses.value = data[0]
-      $fields.value = data[1]
-    } finally {
-      $isLoading.value = false
-    }
+    $courses.value = data[0]
+    $fields.value = data[1]
   }
 
   async function deleteApplication(application: Application): Promise<void> {
@@ -132,7 +119,6 @@ export const useApplicationsStore = defineStore('applications', () => {
     applications: $applications,
     fields: $fields,
     courses: $courses,
-    isLoading: $isLoading,
     fetchApplications,
     fetchFieldsAndCourses,
     deleteApplication,

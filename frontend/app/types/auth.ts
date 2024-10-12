@@ -8,3 +8,5 @@ export type LoginResponse = {
   user: User
   token: string
 }
+
+export type VerifyResponse = Pick<LoginResponse, 'user'>

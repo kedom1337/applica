@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { z } from 'zod'
 
-const store = useUserStore()
-
 definePageMeta({
   layout: false,
+  middleware: ['not-authorized'],
 })
 
-const { handleSubmit, isSubmitting, resetForm } = useForm({
+const userStore = useUserStore()
+
+const { handleSubmit, isSubmitting, resetForm, setErrors } = useForm({
   validationSchema: toTypedSchema(
     z.object({
       userName: z.string(),
@@ -18,14 +19,15 @@ const { handleSubmit, isSubmitting, resetForm } = useForm({
 
 const onSubmit = handleSubmit(async (values) => {
   try {
-    await store.login(values.userName, values.password)
-  } catch (err) {
+    await userStore.login(values.userName, values.password)
+    navigateTo('/')
+  } catch {
     resetForm()
-
-    throw err
+    setErrors({
+      userName: 'Invalid',
+      password: 'Invalid',
+    })
   }
-
-  navigateTo('/')
 })
 </script>
 

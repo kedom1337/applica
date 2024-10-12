@@ -6,21 +6,24 @@ import type {
 } from 'primevue/datatable'
 import type { Application, ApplicationStatus, Field } from '~/types/applicaion'
 
-const store = useApplicationsStore()
+definePageMeta({
+  middleware: ['authorized'],
+})
+
+const applicationsStore = useApplicationsStore()
 await useAsyncData('applications', () =>
-  store.fetchApplications().then(() => true)
+  applicationsStore.fetchApplications().then(() => true)
 )
 
 const confirm = useConfirm()
 const toast = useToast()
 
 const dataTable = useTemplateRef<InstanceType<typeof DataTable>>('data-table')
-
 const selected = ref<Application[]>([])
-const detailTarget = ref<Application>()
+const detail = ref<Application>()
 
 const detailDialog = ref(false)
-const statusOptions = ref(['pending', 'accepted', 'declined'])
+const statusOptions = ['pending', 'accepted', 'declined']
 const filters = ref<DataTableFilterMeta>({
   global: { value: '', matchMode: 'contains' },
   status: { value: '', matchMode: 'equals' },
@@ -64,7 +67,7 @@ function confirmStatusChange(
       outlined: true,
     },
     accept: async () => {
-      await store.setApplicationStatus(application, status)
+      await applicationsStore.setApplicationStatus(application, status)
       toast.add({
         severity: 'success',
         summary: 'Status changed',
@@ -88,7 +91,7 @@ function confirmDelete(): void {
     },
     accept: async () => {
       const deleteRequests = selected.value.map((application) =>
-        store.deleteApplication(application)
+        applicationsStore.deleteApplication(application)
       )
 
       await Promise.all(deleteRequests)
@@ -105,12 +108,12 @@ function confirmDelete(): void {
 }
 
 function openDetailDialog(application?: Application): void {
-  detailTarget.value = application
+  detail.value = application
   detailDialog.value = true
 }
 
 function closeDetailDialog(): void {
-  detailTarget.value = undefined
+  detail.value = undefined
 }
 </script>
 
@@ -119,7 +122,7 @@ function closeDetailDialog(): void {
     <ConfirmDialog />
     <ApplicationDetailDialog
       v-model:visible="detailDialog"
-      :application="detailTarget"
+      :application="detail"
       @hide="closeDetailDialog"
     />
 
@@ -162,7 +165,7 @@ function closeDetailDialog(): void {
           removable-sort
           sort-mode="multiple"
           paginator
-          :value="store.applications"
+          :value="applicationsStore.applications"
           :rows="15"
           :rows-per-page-options="[5, 15, 25]"
         >
