@@ -5,7 +5,7 @@ import { getLdapClient, ldapConfig } from '../ldap'
 import { HTTPException } from 'hono/http-exception'
 import { Client } from 'ldapts'
 import { StatusCodes } from 'http-status-codes'
-import { sign } from 'hono/jwt'
+import { jwt, sign } from 'hono/jwt'
 import { env } from 'hono/adapter'
 
 export const app = new Hono().basePath('/auth')
@@ -79,6 +79,18 @@ app.post('/login', zValidator('json', Login), async (c) => {
   }
 })
 
+app.use('*', (c, next) => {
+  const jwtMiddleware = jwt({
+    secret: env<{ JWT_SECRET: string }>(c).JWT_SECRET,
+  })
+
+  return jwtMiddleware(c, next)
+})
+
 app.get('/verify', (c) => {
-  return c.json({ ok: true })
+  const user = c.get('jwtPayload')
+
+  return c.json({
+    user: user,
+  })
 })
