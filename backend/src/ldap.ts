@@ -1,11 +1,11 @@
 import { Client } from 'ldapts'
-import { getEnvVariable } from './common/util'
+import { getEnv } from './common/util'
 
 export const ldapConfig = {
-  url: getEnvVariable('LDAP_URL'),
-  baseDn: getEnvVariable('LDAP_BASE_DN'),
-  adminPassword: getEnvVariable('LDAP_ADMIN_PASSWORD'),
-  fieldLeaderDn: getEnvVariable('LDAP_LEADER_DN'),
+  url: getEnv('LDAP_URL'),
+  baseDn: getEnv('LDAP_BASE_DN'),
+  adminPassword: getEnv('LDAP_ADMIN_PASSWORD'),
+  fieldLeaderDn: getEnv('LDAP_LEADER_DN'),
 }
 
 export async function getLdapClient(): Promise<Client> {

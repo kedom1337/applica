@@ -17,15 +17,21 @@ app.route('/', courses.app)
 app.route('/', auth.app)
 
 app.notFound((c) => c.json({ message: 'Not Found' }, StatusCodes.NOT_FOUND))
+
 app.onError((err, c) => {
+  let res
   if (err instanceof HTTPException) {
-    return c.json({ message: err.message }, err.status)
+    res = c.json({ message: err.message }, err.status)
+  } else {
+    console.error('Internal server error: ', err)
+
+    res = c.json(
+      { message: ReasonPhrases.INTERNAL_SERVER_ERROR },
+      StatusCodes.INTERNAL_SERVER_ERROR
+    )
   }
 
-  return c.json(
-    { message: ReasonPhrases.INTERNAL_SERVER_ERROR },
-    StatusCodes.INTERNAL_SERVER_ERROR
-  )
+  return res
 })
 
 export default {
