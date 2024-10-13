@@ -9,6 +9,7 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
+  compatibilityDate: '2024-10-12',
   devtools: {
     enabled: true,
   },
@@ -36,3 +37,4 @@ export default defineNuxtConfig({
     propsDestructure: true,
   },
 })
+
