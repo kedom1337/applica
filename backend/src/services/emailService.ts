@@ -3,8 +3,8 @@ import { getEnv } from '../common/util';
 
 const transporter = nodemailer.createTransport({
   host: getEnv('SMTP_HOST'),
-  port: parseInt(getEnv('SMTP_PORT')),
-  secure: false,
+  port: parseInt(getEnv('SMTP_PORT'), 10),
+  secure: true, // Falls Port 465 verwendet wird
   auth: {
     user: getEnv('SMTP_USER'),
     pass: getEnv('SMTP_PASS'),
