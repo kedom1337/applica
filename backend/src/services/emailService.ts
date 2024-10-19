@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 
 export const sendEmail = async (email: string, username: string, password: string) => {
   const message = `
-    Hallo ${username},
+    Hallo,
 
     willkommen bei unserer Vereinsinfrastruktur! Hier sind deine Zugangsdaten:
 
