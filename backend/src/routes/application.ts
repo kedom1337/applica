@@ -14,7 +14,7 @@ import { env } from 'hono/adapter'
 import { getLdapClient, ldapConfig } from '../ldap'
 import { randomNumber, randomPassword } from '../common/util'
 import { createHash } from 'crypto'
-import { AlreadyExistsError } from 'ldapts'
+import { AlreadyExistsError, Change, ChangeOperation } from 'ldapts'
 import { HTTPException } from 'hono/http-exception'
 import { StatusCodes } from 'http-status-codes'
 import { sendEmail } from '../services/emailService';
@@ -262,22 +262,21 @@ app.post('/status', zValidator('json', UpdateApplicationStatus), async (c) => {
                 }
               : userEntry
           )
-          // Nutzer zu Standardgruppen hinzufügen
-          const groups = ['cn=team,ou=services', 'cn=Mitglied,ou=group'];
-
           for (const groupDn of groups) {
             try {
-              await ldap.modify(groupDn + `,${ldapConfig.baseDn}`, {
-                operation: 'add',
+              const change = new Change({
+                operation: 'add' as ChangeOperation,
                 modification: {
-                  memberUid: uid,
+                  memberUid: retryUid,
                 },
               });
+          
+              await ldap.modify(`${groupDn},${ldapConfig.baseDn}`, [change]);
               console.log(`User ${uid} added to group ${groupDn}`);
             } catch (error) {
               console.error(`Failed to add user ${uid} to group ${groupDn}:`, error);
             }
-          }
+          }          
           console.info(`User ${cn} with password ${pass} added`)
           await sendEmail(rawApplication.email, uid, pass);
 
