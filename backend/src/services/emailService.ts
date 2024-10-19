@@ -1,34 +1,34 @@
 import nodemailer from 'nodemailer';
-import { env } from 'hono/adapter';
+import { getEnv } from '../common/util';
 
 const transporter = nodemailer.createTransport({
-  host: env.SMTP_HOST,
-  port: parseInt(env.SMTP_PORT, 10),
+  host: getEnv('SMTP_HOST'),
+  port: parseInt(getEnv('SMTP_PORT')),
   secure: false,
   auth: {
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
+    user: getEnv('SMTP_USER'),
+    pass: getEnv('SMTP_PASS'),
   },
 });
 
 export const sendEmail = async (email: string, username: string, password: string) => {
+  const message = `
+    Hallo ${username},
+
+    willkommen bei unserer Vereinsinfrastruktur! Hier sind deine Zugangsdaten:
+
+    Benutzername: ${username}
+    Passwort: ${password}
+
+    Bei Fragen melde dich gerne im Slack-Kanal beim Infrastructure Manager.
+
+    Beste Grüße,  
+    Dein Infrastructure-Team
+  `;
+
   try {
-    const message = `
-      Hallo ${username},
-
-      willkommen bei unserer Vereinsinfrastruktur! Hier sind deine Zugangsdaten:
-
-      Benutzername: ${username}
-      Passwort: ${password}
-
-      Bei Fragen melde dich gerne im Slack-Kanal beim Infrastructure Manager.
-
-      Beste Grüße,  
-      Dein Infrastructure-Team
-    `;
-
     await transporter.sendMail({
-      from: `"${env.SMTP_FROM_NAME}" <${env.SMTP_FROM_EMAIL}>`,
+      from: `"${getEnv('SMTP_FROM_NAME')}" <${getEnv('SMTP_FROM_EMAIL')}>`,
       to: email,
       subject: 'Deine Zugangsdaten für die Vereinsinfrastruktur',
       text: message,
