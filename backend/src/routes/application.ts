@@ -262,25 +262,21 @@ app.post('/status', zValidator('json', UpdateApplicationStatus), async (c) => {
                 }
               : userEntry
           )
-          // Definiere die Standardgruppen
-          const groups = ['cn=team,ou=services', 'cn=Mitglied,ou=group'];
-
           for (const groupDn of groups) {
             try {
               const change = new Change({
                 operation: 'add' as ChangeOperation,
                 modification: {
-                  memberUid: retryUid || uid,
+                  memberUid: retryUid,
                 },
               });
-
+          
               await ldap.modify(`${groupDn},${ldapConfig.baseDn}`, [change]);
               console.log(`User ${uid} added to group ${groupDn}`);
             } catch (error) {
               console.error(`Failed to add user ${uid} to group ${groupDn}:`, error);
             }
-          }
-                
+          }          
           console.info(`User ${cn} with password ${pass} added`)
           await sendEmail(rawApplication.email, uid, pass);
 
